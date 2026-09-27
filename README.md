@@ -22,7 +22,7 @@ Stack: Next.js 16 (App Router, TypeScript), Tailwind 4, Supabase (Auth + Postgre
 ## Estructura
 
 ```
-cuarto-de-datos/
+(raíz del repositorio)
 ├─ src/
 │  ├─ proxy.ts                  sesión + cierre por inactividad en cada petición
 │  ├─ app/
@@ -65,7 +65,7 @@ cuarto-de-datos/
 ### 3. Vercel
 
 1. **Add New → Project** → importe este repositorio.
-2. **Root Directory: `cuarto-de-datos`**. Framework: Next.js.
+2. Framework: Next.js (se detecta solo). No hace falta cambiar el *Root Directory*.
 3. Cargue las variables de entorno de `.env.example` (con `DOCS_SOURCE=drive`). Genere `SESSION_SECRET` con:
    `node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"`
 4. Despliegue.
@@ -98,7 +98,11 @@ Imprime una contraseña temporal. En el primer ingreso se pide activar 2FA y cre
 
 ## Limitaciones (léalas antes de entregar)
 
-- **No es posible impedir capturas de pantalla ni fotos con el móvil.** La marca de agua con correo, hora e IP disuade y permite rastrear una filtración.
+- **Capturas de pantalla**: el visor las dificulta mucho, pero ninguna página web puede impedirlas al 100 %. Tiene tres capas:
+  1. un **escudo** que solo deja nítida la franja bajo el cursor, así una captura muestra apenas unas líneas;
+  2. oculta el documento al pulsar Impr Pant, Win+Shift+S o Cmd+Shift+3/4/5, o cuando la ventana pierde el foco (por ejemplo, al abrir Recortes), y registra el intento;
+  3. tras Impr Pant, sustituye la imagen del portapapeles por texto.
+  Programas de grabación, capturas con retardo o una **foto con el móvil** siguen siendo posibles. Para esos casos queda la **marca de agua** (correo, hora e IP), que identifica a quien filtró.
 - Para mostrar un documento, sus datos llegan al navegador. Un usuario técnico podría extraerlos con las herramientas de desarrollador. Los bloqueos dificultan la copia pero no la hacen imposible. Si alguien intenta abrir la URL del archivo directamente, recibe un 403 y el intento queda registrado.
 - **Word/Excel**: la conversión a HTML conserva texto, tablas, listas, imágenes y formato numérico básico, pero no el diseño exacto (encabezados de página, gráficos de Excel, fórmulas visibles). Para fidelidad total, suba la versión PDF o conviértalos a Google Docs/Sheets en Drive (se exportan a PDF automáticamente). No se admiten `.doc`, `.xls` ni `.pptx` antiguos: conviértalos a PDF.
 - **Tiempo de visualización**: cuenta solo con la pestaña visible y enfocada. Es una aproximación: si el navegador se cierra de golpe, se pierden como máximo los últimos 30 s.

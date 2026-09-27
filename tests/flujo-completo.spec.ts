@@ -134,6 +134,18 @@ test.describe.serial("cuarto de datos", () => {
     await page.keyboard.press("Control+p");
     await expect(page.getByRole("status")).toContainText("impresión está deshabilitada");
     await canvas.click({ button: "right", force: true });
+
+    // Escudo anticaptura: existe y deja ver solo la franja bajo el cursor
+    const shield = page.getByTestId("screen-shield");
+    await expect(shield).toBeAttached();
+    const box = (await canvas.boundingBox())!;
+    await page.mouse.move(box.x + 100, box.y + 150);
+    await expect.poll(() => shield.evaluate((el) => getComputedStyle(el).maskImage || getComputedStyle(el).webkitMaskImage)).toContain("linear-gradient");
+
+    // Tecla Impr Pant: oculta el documento y queda registrado
+    await page.waitForTimeout(600);
+    await page.keyboard.press("PrintScreen");
+    await expect(page.getByText("Captura de pantalla bloqueada.")).toBeVisible();
     await page.waitForTimeout(500);
 
     // Sin la cabecera del visor, el archivo no se entrega (p. ej. abriendo la URL directamente)

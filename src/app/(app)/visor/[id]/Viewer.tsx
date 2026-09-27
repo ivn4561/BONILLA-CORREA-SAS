@@ -10,7 +10,7 @@ type Blocked = "imprimir" | "guardar" | "copiar" | "clic_derecho" | "captura" | 
 
 const json = (body: unknown) => ({ method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
 
-export function Viewer({ documentId, kind }: { documentId: string; kind: ViewKind }) {
+export function Viewer({ documentId, kind, shield = true }: { documentId: string; kind: ViewKind; shield?: boolean }) {
   const [info, setInfo] = useState<OpenInfo | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
@@ -21,6 +21,9 @@ export function Viewer({ documentId, kind }: { documentId: string; kind: ViewKin
   const [html, setHtml] = useState<string | null>(null);
   const [sheets, setSheets] = useState<{ name: string; html: string; truncated: boolean }[] | null>(null);
   const [loading, setLoading] = useState(true);
+  // Escudo anticaptura: solo se ve nítida una franja alrededor del cursor (null = cursor fuera del documento).
+  const [spot, setSpot] = useState<number | null>(null);
+  const stageRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const pdfRef = useRef<PDFDocumentProxy | null>(null);
   const taskRef = useRef<PDFDocumentLoadingTask | null>(null);
@@ -166,6 +169,12 @@ export function Viewer({ documentId, kind }: { documentId: string; kind: ViewKin
   // 6) Protecciones: clic derecho, atajos, impresión, pérdida de foco
   useEffect(() => {
     if (!info) return;
+    let hideTimer: ReturnType<typeof setTimeout> | undefined;
+    const hideFor = (ms: number) => {
+      setHidden(true);
+      clearTimeout(hideTimer);
+      hideTimer = setTimeout(() => setHidden(!document.hasFocus() || document.visibilityState !== "visible"), ms);
+    };
     const report = (what: Blocked, msg: string) => {
       setNotice(msg);
       setTimeout(() => setNotice(null), 2500);
@@ -181,7 +190,16 @@ export function Viewer({ documentId, kind }: { documentId: string; kind: ViewKin
       else if (mod && k === "s") { e.preventDefault(); report("guardar", "La descarga está deshabilitada."); }
       else if (mod && (k === "c" || k === "x" || k === "a")) { e.preventDefault(); report("copiar", "Copiar está deshabilitado."); }
       else if (e.key === "F12" || (mod && e.shiftKey && ["i", "j", "c"].includes(k)) || (mod && k === "u")) { e.preventDefault(); report("herramientas_dev", "Acción no permitida."); }
-      else if (e.key === "PrintScreen") { setHidden(true); report("captura", "Las capturas de pantalla quedan registradas."); setTimeout(() => setHidden(false), 1500); }
+      else if (e.key === "PrintScreen") {
+        e.preventDefault();
+        hideFor(2000);
+        report("captura", "Captura de pantalla bloqueada.");
+        // Windows ya copió la imagen al portapapeles: la reemplazamos por texto.
+        if (e.type === "keyup") navigator.clipboard?.writeText("Captura bloqueada · Cuarto de datos").catch(() => {});
+      }
+      // macOS: Cmd+Shift+3/4/5 · Windows: Win+Shift+S (herramienta Recortes)
+      else if (e.type === "keydown" && e.shiftKey && (e.metaKey || e.key === "Meta" || e.key === "OS")) { hideFor(3000); report("captura", "Captura de pantalla bloqueada."); }
+      else if (e.type === "keydown" && (e.key === "Meta" || e.key === "OS")) hideFor(1500);
     };
     const onCtx = (e: MouseEvent) => { e.preventDefault(); report("clic_derecho", "Menú contextual deshabilitado."); };
     const onCopy = (e: ClipboardEvent) => { e.preventDefault(); report("copiar", "Copiar está deshabilitado."); };
@@ -244,7 +262,13 @@ export function Viewer({ documentId, kind }: { documentId: string; kind: ViewKin
         </div>
       )}
 
-      <div className={`relative min-h-[60vh] bg-[#e9e6de] p-4 transition ${hidden ? "blur-xl" : ""}`}>
+      <div
+        ref={stageRef}
+        className={`relative min-h-[60vh] bg-[#e9e6de] p-4 transition ${hidden ? "blur-xl" : ""}`}
+        onPointerMove={(e) => shield && setSpot(e.clientY - stageRef.current!.getBoundingClientRect().top)}
+        onPointerDown={(e) => shield && setSpot(e.clientY - stageRef.current!.getBoundingClientRect().top)}
+        onPointerLeave={() => setSpot(null)}
+      >
         {loading && !error && <p className="p-8 text-center text-sm text-muted">Cargando documento…</p>}
         {error && <p className="p-8 text-center text-sm text-red-700">{error}</p>}
         {(kind === "pdf" || kind === "image") && !error && (
@@ -260,8 +284,24 @@ export function Viewer({ documentId, kind }: { documentId: string; kind: ViewKin
             <div className="pointer-events-none absolute inset-0" style={{ backgroundImage: watermarkDataUrl(wmLines) }} />
           </div>
         )}
+        {shield && !loading && !error && (
+          <div
+            data-testid="screen-shield"
+            aria-hidden
+            className="pointer-events-none absolute inset-0 z-10 backdrop-blur-md"
+            style={spot === null ? undefined : {
+              maskImage: `linear-gradient(to bottom, #000 ${spot - 110}px, transparent ${spot - 90}px, transparent ${spot + 90}px, #000 ${spot + 110}px)`,
+              WebkitMaskImage: `linear-gradient(to bottom, #000 ${spot - 110}px, transparent ${spot - 90}px, transparent ${spot + 90}px, #000 ${spot + 110}px)`,
+            }}
+          />
+        )}
+        {shield && spot === null && !loading && !error && !hidden && (
+          <div className="pointer-events-none absolute inset-x-0 top-24 z-20 flex justify-center">
+            <p className="rounded-sm bg-navy/90 px-4 py-2 text-xs text-white">Mueva el cursor (o el dedo) sobre el documento para leerlo</p>
+          </div>
+        )}
         {hidden && (
-          <div className="absolute inset-0 flex items-center justify-center">
+          <div className="absolute inset-0 z-30 flex items-center justify-center">
             <p className="rounded-sm bg-navy px-4 py-2 text-xs text-white">Contenido oculto mientras la ventana no está activa</p>
           </div>
         )}

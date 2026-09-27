@@ -17,7 +17,7 @@ export default async function VisorPage({ params }: { params: Promise<{ id: stri
         <p className="eyebrow">{doc.folder_path.split("/").join(" / ") || "General"}</p>
         <h1 className="font-serif text-3xl text-navy">{doc.name}</h1>
       </div>
-      <Viewer documentId={doc.id} kind={viewKind(doc.mime_type)} />
+      <Viewer documentId={doc.id} kind={viewKind(doc.mime_type)} shield={process.env.SCREEN_SHIELD !== "false"} />
     </div>
   );
 }

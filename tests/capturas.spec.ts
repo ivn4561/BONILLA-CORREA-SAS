@@ -20,6 +20,9 @@ test("capturas", async ({ page }) => {
   await page.getByText("Estados financieros 2025.pdf").click();
   await page.getByTestId("page-indicator").waitFor();
   await page.waitForTimeout(1500);
+  const c = (await page.locator("canvas").boundingBox())!;
+  await page.mouse.move(c.x + 200, c.y + 180);
+  await page.waitForTimeout(300);
   await page.screenshot({ path: `${dir}/04-visor-pdf.png` });
   await page.goto("/documentos");
   await page.getByText("Acta asamblea No. 12.docx").click();
