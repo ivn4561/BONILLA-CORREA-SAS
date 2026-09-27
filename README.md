@@ -59,8 +59,7 @@ Stack: Next.js 16 (App Router, TypeScript), Tailwind 4, Supabase (Auth + Postgre
 2. **IAM → Cuentas de servicio → Crear** (sin roles) → **Claves → JSON**. Guarde el archivo; **no lo suba al repositorio**.
 3. En Drive, comparta la carpeta «Cuarto de datos» con el correo de la cuenta de servicio con permiso **Lector**.
 4. Copie el ID de la carpeta (la parte final de `drive.google.com/drive/folders/ID`).
-5. Convierta el JSON a base64 para la variable de entorno:
-   `base64 -w0 cuenta-servicio.json` (macOS: `base64 -i cuenta-servicio.json`).
+5. En Vercel, pegue el contenido completo del JSON en la variable `GOOGLE_SERVICE_ACCOUNT_JSON`.
 
 ### 3. Vercel
 

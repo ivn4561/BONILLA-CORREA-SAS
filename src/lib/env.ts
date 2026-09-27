@@ -20,8 +20,10 @@ export const env = {
   get docsSource() { return (process.env.DOCS_SOURCE ?? "drive") as "drive" | "local"; },
   get driveRootFolderId() { return required("DRIVE_ROOT_FOLDER_ID"); },
   get googleServiceAccount() {
-    const raw = required("GOOGLE_SERVICE_ACCOUNT_JSON_BASE64");
-    return JSON.parse(Buffer.from(raw, "base64").toString("utf8")) as { client_email: string; private_key: string };
+    // Acepta el JSON pegado tal cual (GOOGLE_SERVICE_ACCOUNT_JSON) o codificado en base64.
+    const raw = (process.env.GOOGLE_SERVICE_ACCOUNT_JSON ?? required("GOOGLE_SERVICE_ACCOUNT_JSON_BASE64")).trim();
+    const text = raw.startsWith("{") ? raw : Buffer.from(raw, "base64").toString("utf8");
+    return JSON.parse(text) as { client_email: string; private_key: string };
   },
   get localDocsDir() { return process.env.LOCAL_DOCS_DIR ?? "./demo-docs"; },
   get geoFallback() { return process.env.GEO_FALLBACK ?? "ipapi"; },
