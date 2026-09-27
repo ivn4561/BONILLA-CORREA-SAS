@@ -1,0 +1,28 @@
+import "server-only";
+
+function required(name: string): string {
+  const value = process.env[name];
+  if (!value) throw new Error(`Falta la variable de entorno ${name}`);
+  return value;
+}
+
+export const env = {
+  get supabaseUrl() { return required("SUPABASE_URL"); },
+  get supabaseAnonKey() { return required("SUPABASE_ANON_KEY"); },
+  get supabaseServiceKey() { return required("SUPABASE_SERVICE_ROLE_KEY"); },
+  get sessionSecret() {
+    const s = required("SESSION_SECRET");
+    if (s.length < 32) throw new Error("SESSION_SECRET debe tener al menos 32 caracteres");
+    return s;
+  },
+  get idleMinutes() { return Number(process.env.IDLE_TIMEOUT_MINUTES ?? 15); },
+  get requireMfa() { return (process.env.REQUIRE_MFA ?? "true") !== "false"; },
+  get docsSource() { return (process.env.DOCS_SOURCE ?? "drive") as "drive" | "local"; },
+  get driveRootFolderId() { return required("DRIVE_ROOT_FOLDER_ID"); },
+  get googleServiceAccount() {
+    const raw = required("GOOGLE_SERVICE_ACCOUNT_JSON_BASE64");
+    return JSON.parse(Buffer.from(raw, "base64").toString("utf8")) as { client_email: string; private_key: string };
+  },
+  get localDocsDir() { return process.env.LOCAL_DOCS_DIR ?? "./demo-docs"; },
+  get geoFallback() { return process.env.GEO_FALLBACK ?? "ipapi"; },
+};

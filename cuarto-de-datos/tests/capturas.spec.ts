@@ -1,0 +1,40 @@
+import { test } from "@playwright/test";
+import { totp } from "./totp";
+
+// Capturas de pantalla para revisión visual (no forma parte de la suite principal).
+test.skip(!process.env.SHOTS_DIR, "Solo con SHOTS_DIR");
+test("capturas", async ({ page }) => {
+  const dir = process.env.SHOTS_DIR!;
+  await page.setViewportSize({ width: 1366, height: 900 });
+  await page.goto("/login");
+  await page.screenshot({ path: `${dir}/01-login.png` });
+  await page.getByLabel("Correo electrónico").fill("admin@demo.co");
+  await page.getByLabel("Contraseña").fill("AdminSeguro2026x");
+  await page.getByRole("button", { name: "Continuar" }).click();
+  await page.getByLabel("Código de 6 dígitos").fill(totp(process.env.SECRET!));
+  await page.getByRole("button", { name: "Verificar" }).click();
+  await page.waitForURL(/admin/);
+  await page.screenshot({ path: `${dir}/02-resumen.png`, fullPage: true });
+  await page.goto("/documentos");
+  await page.screenshot({ path: `${dir}/03-documentos.png`, fullPage: true });
+  await page.getByText("Estados financieros 2025.pdf").click();
+  await page.getByTestId("page-indicator").waitFor();
+  await page.waitForTimeout(1500);
+  await page.screenshot({ path: `${dir}/04-visor-pdf.png` });
+  await page.goto("/documentos");
+  await page.getByText("Acta asamblea No. 12.docx").click();
+  await page.locator(".doc-html h1").waitFor();
+  await page.screenshot({ path: `${dir}/05-visor-word.png` });
+  await page.goto("/documentos");
+  await page.getByText("Balance de prueba Q1 2026.xlsx").click();
+  await page.locator(".sheet-html table").waitFor();
+  await page.screenshot({ path: `${dir}/06-visor-excel.png` });
+  await page.goto("/admin/actividad");
+  await page.screenshot({ path: `${dir}/07-actividad.png` });
+  const [pdf] = await Promise.all([page.waitForEvent("download"), page.getByRole("link", { name: "Exportar PDF" }).click()]);
+  await pdf.saveAs(`${dir}/registro.pdf`);
+  const [csv] = await Promise.all([page.waitForEvent("download"), page.getByRole("link", { name: "Exportar CSV" }).click()]);
+  await csv.saveAs(`${dir}/registro.csv`);
+  await page.goto("/admin/usuarios");
+  await page.screenshot({ path: `${dir}/08-usuarios.png`, fullPage: true });
+});

@@ -1,0 +1,55 @@
+@import "tailwindcss";
+
+@theme {
+  --color-navy: #1a2744;
+  --color-navy-2: #243460;
+  --color-gold: #c9a84c;
+  --color-gold-2: #e2c97e;
+  --color-cream: #f8f6f1;
+  --color-cream-2: #f0ece3;
+  --color-ink: #1a2744;
+  --color-muted: #6b7280;
+  --font-serif: "Cormorant Garamond", Georgia, serif;
+  --font-sans: "Montserrat", system-ui, sans-serif;
+}
+
+html, body { background: var(--color-cream); color: var(--color-ink); }
+body { font-family: var(--font-sans); -webkit-font-smoothing: antialiased; }
+
+@utility card { @apply rounded-md border border-navy/10 bg-white shadow-sm; }
+@utility btn { @apply inline-flex items-center justify-center gap-2 rounded-sm px-4 py-2 text-xs font-semibold uppercase tracking-wider transition disabled:cursor-not-allowed disabled:opacity-50; }
+@utility btn-primary { @apply btn bg-navy text-white hover:bg-navy-2; }
+@utility btn-gold { @apply btn bg-gold text-navy hover:bg-gold-2; }
+@utility btn-ghost { @apply btn border border-navy/20 text-navy hover:bg-navy/5; }
+@utility btn-danger { @apply btn border border-red-700/30 text-red-800 hover:bg-red-50; }
+@utility input { @apply w-full rounded-sm border border-navy/20 bg-white px-3 py-2 text-sm outline-none focus:border-gold focus:ring-2 focus:ring-gold/30; }
+@utility label { @apply mb-1 block text-[0.65rem] font-semibold uppercase tracking-[0.15em] text-muted; }
+@utility eyebrow { @apply text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-gold; }
+.table-audit th { @apply whitespace-nowrap border-b border-navy/10 bg-cream-2 px-3 py-2 text-left text-[0.65rem] font-semibold uppercase tracking-wider text-muted; }
+.table-audit td { @apply border-b border-navy/5 px-3 py-2 align-top text-xs; }
+@utility badge { @apply inline-block rounded-full px-2 py-0.5 text-[0.65rem] font-semibold; }
+
+/* ---------- Visor protegido ---------- */
+.protected, .protected * { -webkit-user-select: none !important; user-select: none !important; -webkit-touch-callout: none !important; }
+.protected img, .protected canvas { -webkit-user-drag: none; pointer-events: none; }
+.doc-html { font-family: Georgia, serif; line-height: 1.6; color: #111; }
+.doc-html h1 { font-size: 1.6rem; font-weight: 700; margin: 1rem 0 .5rem; }
+.doc-html h2 { font-size: 1.3rem; font-weight: 700; margin: 1rem 0 .5rem; }
+.doc-html h3 { font-size: 1.1rem; font-weight: 700; margin: .8rem 0 .4rem; }
+.doc-html p { margin: .5rem 0; }
+.doc-html ul { list-style: disc; padding-left: 1.5rem; }
+.doc-html ol { list-style: decimal; padding-left: 1.5rem; }
+.doc-html table { border-collapse: collapse; margin: .75rem 0; }
+.doc-html td, .doc-html th { border: 1px solid #ccc; padding: 4px 8px; }
+.doc-html img { max-width: 100%; }
+.sheet-html table { border-collapse: collapse; font-family: ui-sans-serif, system-ui; font-size: 12px; }
+.sheet-html th { background: #f0ece3; color: #6b7280; font-weight: 600; position: sticky; top: 0; }
+.sheet-html td, .sheet-html th { border: 1px solid #e5e1d6; padding: 2px 8px; white-space: nowrap; }
+.sheet-html td.num { text-align: right; font-variant-numeric: tabular-nums; }
+.sheet-html tbody th { position: sticky; left: 0; }
+.doc-html pre { white-space: pre-wrap; font-family: ui-monospace, monospace; font-size: 13px; }
+
+@media print {
+  body * { display: none !important; }
+  body::after { content: "Impresión deshabilitada en el cuarto de datos."; display: block !important; padding: 2rem; font: 16px sans-serif; }
+}

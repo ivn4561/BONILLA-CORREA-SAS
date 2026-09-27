@@ -1,0 +1,16 @@
+node_modules/
+.next/
+out/
+next-env.d.ts
+*.tsbuildinfo
+.env
+.env.*
+!.env.example
+public/pdfjs/
+playwright-report/
+test-results/
+supabase/.branches
+supabase/.temp
+.vercel
+*.pem
+service-account*.json
