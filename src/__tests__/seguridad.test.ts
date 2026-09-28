@@ -6,6 +6,7 @@ import { zonedDayStart, type AuditRow } from "@/lib/audit-query";
 import { tempPassword } from "@/lib/passwords";
 import { validatePassword } from "@/lib/login-flow";
 import { viewKind } from "@/lib/docs/types";
+import { positiveNumber } from "@/lib/env-utils";
 
 const SECRET = "x".repeat(40);
 
@@ -73,5 +74,16 @@ describe("tipos de archivo", () => {
     expect(viewKind("application/vnd.google-apps.document")).toBe("pdf");
     expect(viewKind("image/svg+xml")).toBe("unsupported"); // SVG puede contener scripts
     expect(viewKind("application/msword")).toBe("unsupported");
+  });
+});
+
+describe("variables de entorno", () => {
+  it("una variable vacía usa el valor por defecto (no cierra la sesión al instante)", () => {
+    expect(positiveNumber("", 15)).toBe(15);
+    expect(positiveNumber("   ", 15)).toBe(15);
+    expect(positiveNumber(undefined, 15)).toBe(15);
+    expect(positiveNumber("abc", 15)).toBe(15);
+    expect(positiveNumber("0", 15)).toBe(15);
+    expect(positiveNumber("30", 15)).toBe(30);
   });
 });

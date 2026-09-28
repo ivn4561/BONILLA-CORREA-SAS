@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
+import { positiveNumber } from "@/lib/env-utils";
 import { ACTIVITY_COOKIE, activityCookieOptions, createActivityValue, readActivityValue } from "@/lib/session-cookie";
 
 const PUBLIC = ["/login", "/salir", "/api/auth/login", "/api/auth/state"];
@@ -35,8 +36,9 @@ export async function proxy(request: NextRequest) {
 
   // Cierre por inactividad, verificado en el servidor.
   const secret = process.env.SESSION_SECRET!;
-  const idleMs = Number(process.env.IDLE_TIMEOUT_MINUTES ?? 15) * 60_000;
-  const graceMs = Number(process.env.IDLE_GRACE_SECONDS ?? 90) * 1000;
+  const idleMs = positiveNumber(process.env.IDLE_TIMEOUT_MINUTES, 15) * 60_000;
+  const grace = Number(process.env.IDLE_GRACE_SECONDS?.trim() || 90);
+  const graceMs = (Number.isFinite(grace) && grace >= 0 ? grace : 90) * 1000;
   const act = readActivityValue(request.cookies.get(ACTIVITY_COOKIE)?.value, secret);
   const expired = !act || act.uid !== user.id || Date.now() - act.at > idleMs + graceMs;
 
