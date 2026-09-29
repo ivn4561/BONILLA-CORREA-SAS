@@ -29,6 +29,7 @@ export function readActivityValue(value: string | undefined, secret: string) {
 export const activityCookieOptions = {
   httpOnly: true,
   secure: process.env.NODE_ENV === "production",
-  sameSite: "strict" as const,
+  // "lax": se envía también al llegar desde un enlace externo (correo, WhatsApp); "strict" cerraba la sesión.
+  sameSite: "lax" as const,
   path: "/",
 };

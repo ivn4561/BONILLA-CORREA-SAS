@@ -75,6 +75,13 @@ test.describe.serial("cuarto de datos", () => {
     await firstLogin(page, ADMIN, ADMIN_TEMP, ADMIN_PW);
     await expect(page).toHaveURL(/\/admin$/);
     await expect(page.getByRole("heading", { name: "Resumen" })).toBeVisible();
+
+    // Las cookies de sesión no son legibles desde JavaScript (protección ante robo de sesión)
+    const cookies = await page.context().cookies();
+    const session = cookies.filter((c) => c.name.startsWith("sb-") || c.name === "dr_act");
+    expect(session.length).toBeGreaterThan(1);
+    for (const c of session) expect(c.httpOnly, `${c.name} debe ser httpOnly`).toBe(true);
+    expect(await page.evaluate(() => document.cookie)).not.toMatch(/sb-|dr_act/);
   });
 
   test("administrador: sincroniza, publica documentos e invita auditor", async ({ page }) => {
