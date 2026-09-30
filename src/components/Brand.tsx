@@ -11,7 +11,7 @@ export function BrandMark({ light = false }: { light?: boolean }) {
       </svg>
       <div className="leading-tight">
         <div className={`font-serif text-lg font-semibold ${light ? "text-white" : "text-navy"}`}>{brand.orgName}</div>
-        <div className="text-[0.6rem] font-semibold uppercase tracking-[0.2em] text-gold">{brand.roomName}</div>
+        <div className={`text-[0.6rem] font-semibold uppercase tracking-[0.2em] ${light ? "text-gold" : "text-gold-ink"}`}>{brand.roomName}</div>
       </div>
     </div>
   );

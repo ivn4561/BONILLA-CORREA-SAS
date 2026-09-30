@@ -272,7 +272,7 @@ export function Viewer({ documentId, kind, shield = true }: { documentId: string
         {loading && !error && <p className="p-8 text-center text-sm text-muted">Cargando documento…</p>}
         {error && <p className="p-8 text-center text-sm text-red-700">{error}</p>}
         {(kind === "pdf" || kind === "image") && !error && (
-          <div className="flex justify-center overflow-auto"><canvas ref={canvasRef} className="bg-white shadow-md" /></div>
+          <div className="flex justify-center overflow-auto"><canvas ref={canvasRef} className="bg-white shadow-md" role="img" aria-label={kind === "pdf" ? `Página ${page} de ${numPages} del documento (vista protegida de solo lectura)` : "Imagen del documento (vista protegida de solo lectura)"} /></div>
         )}
         {(html || sheets) && !error && (
           <div className="relative mx-auto min-h-[50vh] max-w-4xl bg-white shadow-md">

@@ -7,6 +7,7 @@ import { env } from "@/lib/env";
 import { createSupabaseServer } from "@/lib/supabase/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { ACTIVITY_COOKIE, readActivityValue } from "@/lib/session-cookie";
+import { LEGAL_VERSION } from "@/lib/legal";
 
 export type Profile = {
   id: string;
@@ -20,7 +21,7 @@ export type Profile = {
   created_at: string;
 };
 
-export type Stage = "anon" | "denied" | "mfa_enroll" | "mfa_verify" | "change_password" | "ok";
+export type Stage = "anon" | "denied" | "mfa_enroll" | "mfa_verify" | "change_password" | "consent" | "ok";
 
 export type SessionState = {
   stage: Stage;
@@ -33,6 +34,20 @@ export type SessionState = {
 export async function getProfile(id: string): Promise<Profile | null> {
   const { data } = await supabaseAdmin().from("profiles").select("*").eq("id", id).maybeSingle();
   return (data as Profile | null) ?? null;
+}
+
+/**
+ * ¿Aceptó el usuario la versión vigente de los Términos y de la Política de datos?
+ * La prueba de la autorización (Ley 1581 de 2012) vive en el registro inalterable.
+ */
+export async function hasCurrentConsent(userId: string): Promise<boolean> {
+  const { data, error } = await supabaseAdmin()
+    .from("audit_log").select("id")
+    .eq("user_id", userId).eq("action", "consentimiento_aceptado")
+    .contains("details", { version: LEGAL_VERSION })
+    .limit(1);
+  if (error) throw new Error("No se pudo verificar la autorización de tratamiento de datos");
+  return (data?.length ?? 0) > 0;
 }
 
 export function accessProblem(profile: Profile | null): SessionState["deniedReason"] | null {
@@ -63,6 +78,7 @@ export async function getSessionState(): Promise<SessionState> {
     }
   }
   if (profile!.must_change_password) return { stage: "change_password", user, profile, sessionId };
+  if (!(await hasCurrentConsent(user.id))) return { stage: "consent", user, profile, sessionId };
   return { stage: "ok", user, profile, sessionId };
 }
 

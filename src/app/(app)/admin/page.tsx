@@ -45,7 +45,7 @@ export default async function AdminHome() {
       <div>
         <div className="mb-3 flex items-end justify-between">
           <h2 className="font-serif text-2xl text-navy">Actividad reciente</h2>
-          <Link href="/admin/actividad" className="text-xs font-semibold uppercase tracking-wider text-gold">Ver todo →</Link>
+          <Link href="/admin/actividad" className="text-xs font-semibold uppercase tracking-wider text-gold-ink">Ver todo →</Link>
         </div>
         <AuditTable rows={rows} />
       </div>

@@ -1,9 +1,10 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 
-type Stage = "loading" | "anon" | "denied" | "mfa_enroll" | "mfa_verify" | "change_password" | "ok";
+type Stage = "loading" | "anon" | "denied" | "mfa_enroll" | "mfa_verify" | "change_password" | "consent" | "ok";
 
 const MOTIVOS: Record<string, string> = {
   inactividad: "Su sesión se cerró por inactividad.",
@@ -30,6 +31,8 @@ export function LoginFlow() {
   const [enroll, setEnroll] = useState<{ factorId: string; qr: string; secret: string } | null>(null);
   const [newPw, setNewPw] = useState("");
   const [newPw2, setNewPw2] = useState("");
+  const [acceptTerms, setAcceptTerms] = useState(false);
+  const [acceptData, setAcceptData] = useState(false);
 
   const go = useCallback((s: Stage) => {
     setError(null);
@@ -158,7 +161,7 @@ export function LoginFlow() {
             submit(async () => {
               const { ok, data } = await post("/api/auth/password", { password: newPw });
               if (!ok) setError(data.error ?? "No se pudo cambiar la contraseña.");
-              else go("ok");
+              else go(data.stage ?? "ok");
             });
           }}
           className="space-y-5"
@@ -178,6 +181,47 @@ export function LoginFlow() {
           </div>
           {error && <p role="alert" className="text-sm text-red-700">{error}</p>}
           <button className="btn-primary w-full" disabled={busy}>Guardar y entrar</button>
+          <LogoutLink />
+        </form>
+      )}
+      {stage === "consent" && (
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            submit(async () => {
+              const { ok, data } = await post("/api/auth/consent", { terms: acceptTerms, dataProcessing: acceptData });
+              if (!ok) setError(data.error ?? "No se pudo registrar la autorización.");
+              else go("ok");
+            });
+          }}
+          className="space-y-5"
+        >
+          <div>
+            <p className="eyebrow">Antes de continuar</p>
+            <h2 className="mt-1 font-serif text-3xl text-navy">Términos y tratamiento de datos</h2>
+          </div>
+          <div className="rounded-sm border border-navy/15 bg-white p-4 text-sm leading-relaxed text-navy">
+            <p>Para su seguridad y la de la información, en este espacio se registran:</p>
+            <ul className="mt-2 list-disc space-y-1 pl-5 text-muted">
+              <li>su nombre, correo y organización;</li>
+              <li>sus ingresos, los documentos y páginas que consulta y el tiempo de lectura;</li>
+              <li>la dirección IP, la ubicación aproximada y el dispositivo que usa.</li>
+            </ul>
+            <p className="mt-2 text-muted">
+              Se usan solo para controlar el acceso y dejar constancia de la consulta. Puede conocer, actualizar o rectificar
+              sus datos según la <Link href="/privacidad" target="_blank" className="font-semibold text-navy underline">política de tratamiento de datos</Link>.
+            </p>
+          </div>
+          <label className="flex items-start gap-3 text-sm text-navy">
+            <input type="checkbox" className="mt-1 h-4 w-4 accent-[#1a2744]" checked={acceptTerms} onChange={(e) => setAcceptTerms(e.target.checked)} required />
+            <span>He leído y acepto los <Link href="/terminos" target="_blank" className="font-semibold underline">Términos de uso</Link>, incluido el compromiso de confidencialidad.</span>
+          </label>
+          <label className="flex items-start gap-3 text-sm text-navy">
+            <input type="checkbox" className="mt-1 h-4 w-4 accent-[#1a2744]" checked={acceptData} onChange={(e) => setAcceptData(e.target.checked)} required />
+            <span>Autorizo de manera previa, expresa e informada el tratamiento de mis datos personales conforme a la <Link href="/privacidad" target="_blank" className="font-semibold underline">Política de tratamiento de datos</Link> (Ley 1581 de 2012).</span>
+          </label>
+          {error && <p role="alert" className="text-sm text-red-700">{error}</p>}
+          <button className="btn-primary w-full" disabled={busy || !acceptTerms || !acceptData}>Aceptar y entrar</button>
           <LogoutLink />
         </form>
       )}

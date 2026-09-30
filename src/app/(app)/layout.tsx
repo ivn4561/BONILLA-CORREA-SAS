@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { requirePage } from "@/lib/auth";
 import { env } from "@/lib/env";
 import { BrandMark } from "@/components/Brand";
@@ -33,7 +34,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       </header>
       <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-8 sm:px-6">{children}</main>
       <footer className="border-t border-navy/10 py-4 text-center text-[0.65rem] text-muted">
-        Toda la actividad en este espacio queda registrada (usuario, fecha y hora, IP, ubicación aproximada y dispositivo).
+        Toda la actividad en este espacio queda registrada (usuario, fecha y hora, IP, ubicación aproximada y dispositivo).{" "}
+        <Link href="/privacidad" className="underline">Política de tratamiento de datos</Link>{" · "}
+        <Link href="/terminos" className="underline">Términos de uso</Link>
       </footer>
       <IdleGuard idleMinutes={env.idleMinutes} />
     </div>

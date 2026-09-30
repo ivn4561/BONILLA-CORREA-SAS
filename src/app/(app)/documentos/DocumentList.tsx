@@ -34,7 +34,7 @@ export function DocumentList({ docs }: { docs: Doc[] }) {
         {groups.map(([folder, items]) => (
           <section key={folder}>
             <h2 className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.15em] text-navy">
-              <span className="text-gold">▸</span> {folder.split("/").join(" / ")}
+              <span className="text-gold" aria-hidden>▸</span> {folder.split("/").join(" / ")}
               <span className="font-normal text-muted">({items.length})</span>
             </h2>
             <ul className="card divide-y divide-navy/5">
@@ -48,7 +48,7 @@ export function DocumentList({ docs }: { docs: Doc[] }) {
                     <span className="flex shrink-0 items-center gap-4 text-xs text-muted">
                       <span className="hidden sm:inline">{kindLabel(d.mime_type)}</span>
                       <span className="hidden w-16 text-right sm:inline">{formatBytes(d.size_bytes)}</span>
-                      <span className="text-gold">Ver →</span>
+                      <span className="font-semibold text-gold-ink">Ver →</span>
                     </span>
                   </Link>
                 </li>

@@ -48,7 +48,7 @@ export function DocsManager({ docs }: { docs: DocumentRow[] }) {
       {groups.map(([folder, items]) => (
         <section key={folder}>
           <div className="mb-2 flex items-center justify-between">
-            <h2 className="text-xs font-semibold uppercase tracking-[0.15em] text-navy"><span className="text-gold">▸</span> {folder.split("/").join(" / ")}</h2>
+            <h2 className="text-xs font-semibold uppercase tracking-[0.15em] text-navy"><span className="text-gold" aria-hidden>▸</span> {folder.split("/").join(" / ")}</h2>
             <div className="flex gap-2">
               <button className="btn-ghost px-2 py-1" onClick={async () => { for (const d of items) if (!d.visible && viewKind(d.mime_type) !== "unsupported") await toggle(d, true); router.refresh(); }}>Publicar carpeta</button>
               <button className="btn-ghost px-2 py-1" onClick={async () => { for (const d of items) if (d.visible) await toggle(d, false); router.refresh(); }}>Ocultar carpeta</button>
