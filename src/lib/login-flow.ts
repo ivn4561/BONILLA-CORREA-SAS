@@ -2,7 +2,7 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { env } from "@/lib/env";
 import { logEvent } from "@/lib/audit";
-import type { Profile, Stage } from "@/lib/auth";
+import { hasCurrentConsent, type Profile, type Stage } from "@/lib/auth";
 import type { RequestContext } from "@/lib/request-context";
 
 export const MAX_FAILS_PER_EMAIL = 5;
@@ -15,7 +15,8 @@ export async function nextStage(supabase: SupabaseClient, profile: Profile): Pro
     const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
     if (aal?.currentLevel !== "aal2") return aal?.nextLevel === "aal2" ? "mfa_verify" : "mfa_enroll";
   }
-  return profile.must_change_password ? "change_password" : "ok";
+  if (profile.must_change_password) return "change_password";
+  return (await hasCurrentConsent(profile.id)) ? "ok" : "consent";
 }
 
 export async function logLoginSuccess(profile: Profile, sessionId: string | null, context: RequestContext) {

@@ -82,6 +82,7 @@ export function detailsSummary(r: AuditRow): string {
   if (d.filas !== undefined) parts.push(`${d.formato} · ${d.filas} filas`);
   if (d.resultado) parts.push(String(d.resultado));
   if (d.siguiente_paso) parts.push(`siguiente: ${d.siguiente_paso}`);
+  if (d.version && r.action === "consentimiento_aceptado") parts.push(`versión ${d.version}`);
   return parts.join(" · ");
 }
 

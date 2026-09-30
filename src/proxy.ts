@@ -4,7 +4,7 @@ import { positiveNumber } from "@/lib/env-utils";
 import { supabaseCookieOptions } from "@/lib/supabase/cookie-options";
 import { ACTIVITY_COOKIE, activityCookieOptions, createActivityValue, readActivityValue } from "@/lib/session-cookie";
 
-const PUBLIC = ["/login", "/salir", "/api/auth/login", "/api/auth/state", "/api/cron/keepalive"];
+const PUBLIC = ["/login", "/salir", "/api/auth/login", "/api/auth/state", "/api/cron/keepalive", "/privacidad", "/terminos"];
 // Estas rutas no cuentan como actividad del usuario (latidos del visor y descarga de bytes).
 const PASSIVE = ["/api/view/heartbeat", "/api/files/"];
 

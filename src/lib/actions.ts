@@ -9,6 +9,7 @@ export const ACTION_LABELS: Record<string, string> = {
   acceso_denegado: "Acceso denegado",
   cierre_sesion: "Cierre de sesión",
   cambio_contrasena: "Cambio de contraseña",
+  consentimiento_aceptado: "Aceptación de términos y tratamiento de datos",
   documento_abierto: "Apertura de documento",
   pagina_vista: "Cambio de página",
   documento_cerrado: "Cierre de documento",

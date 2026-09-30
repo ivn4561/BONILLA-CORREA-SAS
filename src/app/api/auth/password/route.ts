@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { headers } from "next/headers";
 import { z } from "zod";
 import { readBody, jsonError } from "@/lib/http";
-import { actorOf, getSessionState } from "@/lib/auth";
+import { actorOf, getSessionState, hasCurrentConsent } from "@/lib/auth";
 import { createSupabaseServer } from "@/lib/supabase/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { getRequestContext } from "@/lib/request-context";
@@ -30,6 +30,8 @@ export async function POST(req: Request) {
 
   const context = await getRequestContext(await headers());
   await logEvent({ action: "cambio_contrasena", actor: actorOf(s), context, sessionId: s.sessionId });
-  if (s.stage === "change_password") await logLoginSuccess(s.profile!, s.sessionId, context);
-  return NextResponse.json({ stage: "ok" });
+  const next = (await hasCurrentConsent(s.user!.id)) ? "ok" : "consent";
+  // El inicio de sesión se da por completado solo cuando no quedan pasos pendientes.
+  if (s.stage === "change_password" && next === "ok") await logLoginSuccess(s.profile!, s.sessionId, context);
+  return NextResponse.json({ stage: next });
 }

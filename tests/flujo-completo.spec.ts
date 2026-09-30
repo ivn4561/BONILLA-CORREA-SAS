@@ -42,6 +42,14 @@ async function firstLogin(page: Page, email: string, temp: string, newPw: string
   await page.getByLabel("Nueva contraseña").fill(newPw);
   await page.getByLabel("Repetir contraseña").fill(newPw);
   await page.getByRole("button", { name: "Guardar y entrar" }).click();
+  // Autorización previa, expresa e informada (Ley 1581): sin marcar ambas casillas no se puede continuar
+  await expect(page.getByRole("heading", { name: "Términos y tratamiento de datos" })).toBeVisible();
+  const accept = page.getByRole("button", { name: "Aceptar y entrar" });
+  await expect(accept).toBeDisabled();
+  await page.getByLabel(/acepto los Términos de uso/).check();
+  await expect(accept).toBeDisabled();
+  await page.getByLabel(/Autorizo de manera previa/).check();
+  await accept.click();
 }
 
 async function secondLogin(page: Page, email: string, password: string) {
@@ -72,6 +80,16 @@ function inkRatio(page: Page) {
 test.describe.serial("cuarto de datos", () => {
   test("administrador: primer ingreso con 2FA y cambio de contraseña", async ({ page }) => {
     expect(ADMIN_TEMP, "Defina ADMIN_TEMP_PASSWORD").toBeTruthy();
+    // Las páginas legales son públicas y el login informa sobre las cookies
+    for (const path of ["/privacidad", "/terminos"]) {
+      const res = await page.goto(path);
+      expect(res?.status()).toBe(200);
+    }
+    await expect(page.getByRole("heading", { name: "Términos de uso del cuarto de datos" })).toBeVisible();
+    await page.goto("/privacidad");
+    await expect(page.locator("#cookies")).toContainText("Cookies");
+    await page.goto("/login");
+    await expect(page.getByText("solo cookies esenciales")).toBeVisible();
     await firstLogin(page, ADMIN, ADMIN_TEMP, ADMIN_PW);
     await expect(page).toHaveURL(/\/admin$/);
     await expect(page.getByRole("heading", { name: "Resumen" })).toBeVisible();
@@ -192,7 +210,7 @@ test.describe.serial("cuarto de datos", () => {
     await secondLogin(page, ADMIN, ADMIN_PW);
     await page.goto(`/admin/actividad?user=${encodeURIComponent(AUD)}`);
     const table = page.getByTestId("audit-table");
-    for (const action of ["login_fallido", "login_paso_contrasena", "mfa_activado", "cambio_contrasena", "login_exitoso", "documento_abierto", "pagina_vista", "documento_cerrado", "intento_copia", "acceso_directo_bloqueado", "cierre_sesion"]) {
+    for (const action of ["login_fallido", "login_paso_contrasena", "mfa_activado", "cambio_contrasena", "consentimiento_aceptado", "login_exitoso", "documento_abierto", "pagina_vista", "documento_cerrado", "intento_copia", "acceso_directo_bloqueado", "cierre_sesion"]) {
       await expect(table.locator(`tr[data-action="${action}"]`).first(), `falta ${action}`).toBeVisible();
     }
     await expect(table).toContainText("181.49.12.34");
