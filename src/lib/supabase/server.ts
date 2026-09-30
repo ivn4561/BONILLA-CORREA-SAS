@@ -2,11 +2,13 @@ import "server-only";
 import { cookies } from "next/headers";
 import { createServerClient } from "@supabase/ssr";
 import { env } from "@/lib/env";
+import { supabaseCookieOptions } from "@/lib/supabase/cookie-options";
 
 /** Cliente de Supabase con la sesión del usuario (cookies httpOnly). Solo en servidor. */
 export async function createSupabaseServer() {
   const store = await cookies();
   return createServerClient(env.supabaseUrl, env.supabaseAnonKey, {
+    cookieOptions: supabaseCookieOptions,
     cookies: {
       getAll: () => store.getAll(),
       setAll: (list) => {

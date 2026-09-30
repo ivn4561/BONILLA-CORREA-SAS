@@ -1,9 +1,10 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { positiveNumber } from "@/lib/env-utils";
+import { supabaseCookieOptions } from "@/lib/supabase/cookie-options";
 import { ACTIVITY_COOKIE, activityCookieOptions, createActivityValue, readActivityValue } from "@/lib/session-cookie";
 
-const PUBLIC = ["/login", "/salir", "/api/auth/login", "/api/auth/state"];
+const PUBLIC = ["/login", "/salir", "/api/auth/login", "/api/auth/state", "/api/cron/keepalive"];
 // Estas rutas no cuentan como actividad del usuario (latidos del visor y descarga de bytes).
 const PASSIVE = ["/api/view/heartbeat", "/api/files/"];
 
@@ -12,6 +13,7 @@ export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });
 
   const supabase = createServerClient(process.env.SUPABASE_URL!, process.env.SUPABASE_ANON_KEY!, {
+    cookieOptions: supabaseCookieOptions,
     cookies: {
       getAll: () => request.cookies.getAll(),
       setAll: (list) => {
