@@ -13,6 +13,34 @@ function endOfDayIso(day: string): string | null {
   return d.toISOString();
 }
 
+/** Copia al portapapeles con un método alternativo para Safari (iPad/iPhone). Devuelve si lo logró. */
+async function copyText(text: string): Promise<boolean> {
+  try {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(text);
+      return true;
+    }
+  } catch {
+    // Se intenta el método alternativo.
+  }
+  const ta = document.createElement("textarea");
+  ta.value = text;
+  ta.setAttribute("readonly", "");
+  ta.style.position = "fixed";
+  ta.style.opacity = "0";
+  document.body.appendChild(ta);
+  ta.select();
+  ta.setSelectionRange(0, text.length);
+  let ok = false;
+  try {
+    ok = document.execCommand("copy");
+  } catch {
+    ok = false;
+  }
+  document.body.removeChild(ta);
+  return ok;
+}
+
 async function call(url: string, method: string, body: unknown) {
   const r = await fetch(url, { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
   const d = await r.json().catch(() => ({}));
@@ -26,6 +54,7 @@ export function UsersManager({ profiles, lastLogin, selfId }: { profiles: Profil
   const [secret, setSecret] = useState<{ email: string; password: string } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [copyMsg, setCopyMsg] = useState<string | null>(null);
 
   async function act(p: Profile, body: Record<string, unknown>, confirmMsg?: string) {
     if (confirmMsg && !confirm(confirmMsg)) return;
@@ -72,8 +101,8 @@ export function UsersManager({ profiles, lastLogin, selfId }: { profiles: Profil
             <option value="admin">Administrador</option>
           </select>
         </div>
-        <div className="md:col-span-2"><label className="label" htmlFor="u-until">Acceso hasta (opcional)</label><input id="u-until" type="date" className="input" value={form.until} onChange={(e) => setForm({ ...form, until: e.target.value })} /></div>
-        <div className="flex items-end md:col-span-2"><button className="btn-primary w-full" disabled={busy}>{busy ? "Creando…" : "Invitar"}</button></div>
+        <div className="min-w-0 md:col-span-2"><label className="label" htmlFor="u-until">Acceso hasta (opcional)</label><input id="u-until" type="date" className="input" value={form.until} onChange={(e) => setForm({ ...form, until: e.target.value })} /></div>
+        <div className="flex min-w-0 items-end md:col-span-2"><button className="btn-primary w-full" disabled={busy}>{busy ? "Creando…" : "Invitar"}</button></div>
       </form>
 
       {error && <p role="alert" className="text-sm text-red-700">{error}</p>}
@@ -82,10 +111,20 @@ export function UsersManager({ profiles, lastLogin, selfId }: { profiles: Profil
         <div className="card border-gold bg-gold/10 p-4" data-testid="temp-password">
           <p className="text-sm text-navy">Contraseña temporal de <strong>{secret.email}</strong> (se muestra una sola vez):</p>
           <div className="mt-2 flex items-center gap-3">
-            <code className="rounded-sm bg-white px-3 py-2 font-mono text-lg tracking-wider text-navy">{secret.password}</code>
-            <button className="btn-ghost" onClick={() => navigator.clipboard.writeText(secret.password)}>Copiar</button>
-            <button className="btn-ghost" onClick={() => setSecret(null)}>Ocultar</button>
+            <code className="select-all rounded-sm bg-white px-3 py-2 font-mono text-lg tracking-wider text-navy">{secret.password}</code>
+            <button
+              className="btn-ghost"
+              onClick={async () => {
+                const ok = await copyText(secret.password);
+                setCopyMsg(ok ? "Copiada ✓" : "No se pudo copiar: mantenga pulsada la contraseña y elija «Copiar».");
+                setTimeout(() => setCopyMsg(null), 4000);
+              }}
+            >
+              Copiar
+            </button>
+            <button className="btn-ghost" onClick={() => { setSecret(null); setCopyMsg(null); }}>Ocultar</button>
           </div>
+          {copyMsg && <p role="status" data-testid="copy-msg" className="mt-2 text-sm font-semibold text-navy">{copyMsg}</p>}
           <p className="mt-2 text-xs text-muted">Entréguela por un canal distinto al del enlace (p. ej. enlace por correo y contraseña por WhatsApp o llamada).</p>
         </div>
       )}

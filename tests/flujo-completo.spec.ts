@@ -127,6 +127,9 @@ test.describe.serial("cuarto de datos", () => {
     await page.getByRole("button", { name: "Invitar" }).click();
     await expect(page.getByTestId("temp-password")).toBeVisible();
     auditorTemp = (await page.getByTestId("temp-password").locator("code").textContent())!.trim();
+    // El botón Copiar confirma el resultado (en Safari usa un método alternativo)
+    await page.getByTestId("temp-password").getByRole("button", { name: "Copiar" }).click();
+    await expect(page.getByTestId("copy-msg")).toContainText("Copiada");
     expect(auditorTemp).toHaveLength(16);
     await logout(page);
   });
