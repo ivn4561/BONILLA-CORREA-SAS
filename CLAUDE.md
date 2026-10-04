@@ -69,7 +69,7 @@ un registro inalterable. Sirve para cualquier tipo de auditoría (externa, *due 
 | `src/app/privacidad`, `src/app/terminos`, `src/lib/legal.ts` | Textos legales (Ley 1581/2012, Decreto 1377/2013). La versión está en `LEGAL_VERSION`: si se sube, todos aceptan de nuevo. |
 | `src/app/api/cron/keepalive` + `vercel.json` | Tarea diaria que evita que Supabase gratuito se pause. |
 | `src/app/login/page.tsx`, `src/components/Brand.tsx` | Ingreso con la **identidad BONNY** (zorro en línea, «Llave y control», DM Sans + Instrument Serif, estilo neutro tipo Apple). La clase `.bonny` de `globals.css` re-tematiza el formulario sin tocar su lógica. |
-| `src/lib/reception.ts`, `src/app/page.tsx` (+ `Reception.tsx`, `RoomCodeForm.tsx`), `src/app/api/recepcion`, `src/app/entrar` | **Recepción BONNY**: con `APP_MODE=recepcion` la misma compilación es la recepción (sin base de datos). Código de 6 dígitos → pase firmado (2 min) → `/entrar` del cuarto lo valida, registra `ingreso_recepcion` y deja la cookie `dr_room` (12 h). Con `RECEPTION_SECRET` + `RECEPTION_URL`, el proxy del cuarto exige esa cookie para `/login`. Límite: 5 fallos por IP y 200 en total cada 15 min, en memoria (freno, no garantía). |
+| `src/lib/reception.ts`, `src/app/page.tsx` (+ `Reception.tsx`, `RoomCodeForm.tsx`), `src/app/api/recepcion`, `src/app/entrar` | **Recepción BONNY**: con `APP_MODE=recepcion` la misma compilación es la recepción (sin base de datos). Código de 6 dígitos → pase firmado (2 min) → `/entrar` del cuarto lo valida, registra `ingreso_recepcion` y deja la cookie `dr_room` (12 h). Con `RECEPTION_SECRET` + `RECEPTION_URL`, el proxy del cuarto exige esa cookie para `/login`. Límite: 5 fallos por IP (IPv6 por bloque /64) cada 15 min, en memoria (freno, no garantía); sin tope global para no dejar a todos sin entrar. Si `RECEPTION_*` está mal puesta, el ingreso del cuarto queda **cerrado** (503) en vez de abrirse sin aviso. |
 | `src/lib/brand-theme.ts`, `public/marcas/` | **Marca del cliente** dentro del cuarto: variables `BRAND_*` (colores #rrggbb, `BRAND_FONT=poppins`, logos en `/marcas/`). Vacías = aspecto de siempre. |
 
 ### Roles
@@ -139,6 +139,8 @@ orden que contenga ese texto: mata la propia terminal. **No subir documentos per
 5. Cuando Iván lo pida: cuenta u organización de GitHub con la identidad visual de BONNY.
 
 ### Riesgos conocidos y pendientes
+- Recepción: el pase de entrada (`/entrar?t=…`) se puede reutilizar durante 2 minutos (solo abre el formulario; siguen
+  contraseña y 2FA). El límite de intentos vive en la memoria del servidor: es un freno, no una garantía.
 - Falta verificar en Safari de iPad el ingreso con identidad BONNY (desenfoque, `color-mix` requiere Safari 16.2+, cursivas).
 - El repositorio es **público**: este archivo y los logos de `public/marcas/` revelan quiénes son clientes y se sirven
   sin sesión en todas las instalaciones. Recomendado: pasar el repositorio a privado.

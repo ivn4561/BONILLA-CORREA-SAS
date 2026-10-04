@@ -19,12 +19,26 @@ export function isReceptionMode(): boolean {
   return process.env.APP_MODE?.trim().toLowerCase() === "recepcion";
 }
 
-/** El cuarto exige pasar por la recepción solo si tiene ambas variables. */
+export type GateConfig = { status: "off" } | { status: "invalid" } | { status: "on"; secret: string; url: string };
+
+/**
+ * Configuración del cuarto respecto a la recepción.
+ * - Sin RECEPTION_SECRET ni RECEPTION_URL: "off" (se entra directo a /login, como siempre).
+ * - Con alguna de las dos mal puesta: "invalid". El cuarto NO se abre en silencio: el ingreso queda cerrado
+ *   hasta corregirla (mejor un aviso claro que creer que el cuarto está protegido y no lo esté).
+ */
+export function receptionConfig(e: Record<string, string | undefined> = process.env): GateConfig {
+  const secret = e.RECEPTION_SECRET?.trim();
+  const url = e.RECEPTION_URL?.trim();
+  if (!secret && !url) return { status: "off" };
+  if (!secret || secret.length < 32 || !url || !safeUrl(url)) return { status: "invalid" };
+  return { status: "on", secret, url };
+}
+
+/** Atajo: la recepción activa y bien configurada, o null. */
 export function receptionGate(): { secret: string; url: string } | null {
-  const secret = process.env.RECEPTION_SECRET?.trim();
-  const url = process.env.RECEPTION_URL?.trim();
-  if (!secret || secret.length < 32 || !url || !safeUrl(url)) return null;
-  return { secret, url };
+  const c = receptionConfig();
+  return c.status === "on" ? { secret: c.secret, url: c.url } : null;
 }
 
 function safeUrl(value: string): boolean {
@@ -109,32 +123,37 @@ export function readRoomPass(value: string | undefined, secret: string, now = Da
   return equal(sig, sign(secret, `cuarto.${exp}`));
 }
 
+/** Agrupa las IPv6 por su bloque /64 (cada persona suele tener millones de direcciones en el mismo bloque). */
+export function limiterKey(ip: string | null): string {
+  if (!ip) return "sin-ip";
+  if (!ip.includes(":")) return ip;
+  return ip.toLowerCase().split(":").slice(0, 4).join(":") + "::/64";
+}
+
 /**
- * Límite de intentos fallidos en la recepción (memoria del servidor): 5 por IP y 200 en total cada 15 minutos.
- * Vercel puede repartir las visitas entre varias instancias, así que es un freno, no una garantía.
+ * Límite de intentos fallidos en la recepción, en la memoria del servidor: 5 por IP (o bloque IPv6 /64) cada 15 min.
+ * No hay un tope global que bloquee a todos: dejaría sin entrada a los auditores de todos los cuartos.
+ * Vercel puede repartir las visitas entre varias instancias, así que es un freno, no una garantía; la seguridad
+ * real del cuarto sigue siendo la contraseña y el 2FA.
  */
 export class AttemptLimiter {
   private byKey = new Map<string, number[]>();
-  private all: number[] = [];
-  constructor(private perKey = 5, private total = 200, private windowMs = 15 * 60_000) {}
+  constructor(private perKey = 5, private windowMs = 15 * 60_000, private maxKeys = 50_000) {}
 
-  private prune(list: number[], now: number) {
-    while (list.length && list[0] <= now - this.windowMs) list.shift();
+  private recent(key: string, now: number): number[] {
+    return (this.byKey.get(key) ?? []).filter((t) => t > now - this.windowMs);
   }
 
   blocked(key: string, now = Date.now()): boolean {
-    const list = this.byKey.get(key) ?? [];
-    this.prune(list, now);
-    this.prune(this.all, now);
-    return list.length >= this.perKey || this.all.length >= this.total;
+    return this.recent(key, now).length >= this.perKey;
   }
 
   fail(key: string, now = Date.now()) {
-    const list = this.byKey.get(key) ?? [];
-    this.prune(list, now);
+    const list = this.recent(key, now);
     list.push(now);
-    this.byKey.set(key, list);
-    this.all.push(now);
-    if (this.byKey.size > 10_000) this.byKey.clear(); // evita crecer sin límite ante muchas IP distintas
+    this.byKey.delete(key);
+    this.byKey.set(key, list); // al final: el Map queda ordenado del menos al más reciente
+    // Si hay demasiadas IP, se olvidan las más antiguas (no todas de golpe).
+    while (this.byKey.size > this.maxKeys) this.byKey.delete(this.byKey.keys().next().value!);
   }
 }

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
-  AttemptLimiter, ENTRY_TTL_MS, ROOM_PASS_TTL_MS, createEntryToken, createRoomPass, findRoom, parseRooms, readEntryToken, readRoomPass,
+  AttemptLimiter, ENTRY_TTL_MS, limiterKey, receptionConfig, ROOM_PASS_TTL_MS, createEntryToken, createRoomPass, findRoom, parseRooms, readEntryToken, readRoomPass,
 } from "@/lib/reception";
 
 const S1 = "a".repeat(40);
@@ -64,9 +64,35 @@ describe("recepción: límite de intentos", () => {
     expect(l.blocked("1.1.1.1", 15 * 60_000 + 10)).toBe(false);
   });
 
-  it("bloquea a todos si hay demasiados fallos en total (ataque desde muchas IP)", () => {
-    const l = new AttemptLimiter(5, 20);
-    for (let i = 0; i < 20; i++) l.fail(`10.0.0.${i}`, i);
-    expect(l.blocked("9.9.9.9", 30)).toBe(true);
+  it("los fallos de muchas IP no bloquean a quien llega con otra IP (no deja a todos sin entrar)", () => {
+    const l = new AttemptLimiter();
+    for (let i = 0; i < 1000; i++) for (let k = 0; k < 5; k++) l.fail(`10.0.${i >> 8}.${i & 255}`, i);
+    expect(l.blocked("9.9.9.9", 2000)).toBe(false);
+  });
+
+  it("agrupa las IPv6 del mismo bloque /64", () => {
+    expect(limiterKey("2001:db8:1:2:aaaa::1")).toBe(limiterKey("2001:db8:1:2:bbbb::9"));
+    expect(limiterKey("2001:db8:1:3::1")).not.toBe(limiterKey("2001:db8:1:2::1"));
+    expect(limiterKey("181.49.12.34")).toBe("181.49.12.34");
+    expect(limiterKey(null)).toBe("sin-ip");
+  });
+
+  it("si hay demasiadas IP olvida las más antiguas, no todas", () => {
+    const l = new AttemptLimiter(5, 15 * 60_000, 3);
+    for (let k = 0; k < 5; k++) l.fail("reciente", 100);
+    for (const ip of ["a", "b", "c"]) l.fail(ip, 200);
+    expect(l.blocked("reciente", 300)).toBe(false); // la más antigua se olvidó
+    for (let k = 0; k < 5; k++) l.fail("d", 400);
+    expect(l.blocked("d", 500)).toBe(true);
+  });
+});
+
+describe("recepción: configuración del cuarto", () => {
+  it("apagada sin variables, activa si son válidas e inválida (cerrada) si están mal", () => {
+    expect(receptionConfig({}).status).toBe("off");
+    expect(receptionConfig({ RECEPTION_SECRET: S1, RECEPTION_URL: "https://bonnyanalytics.com" }).status).toBe("on");
+    expect(receptionConfig({ RECEPTION_SECRET: "corto", RECEPTION_URL: "https://bonnyanalytics.com" }).status).toBe("invalid");
+    expect(receptionConfig({ RECEPTION_SECRET: S1, RECEPTION_URL: "http://bonnyanalytics.com" }).status).toBe("invalid");
+    expect(receptionConfig({ RECEPTION_SECRET: S1 }).status).toBe("invalid");
   });
 });

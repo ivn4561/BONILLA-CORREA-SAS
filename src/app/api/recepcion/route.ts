@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { readBody, jsonError } from "@/lib/http";
-import { AttemptLimiter, CODE, createEntryToken, findRoom, isReceptionMode, parseRooms } from "@/lib/reception";
+import { clientIp } from "@/lib/request-context";
+import { AttemptLimiter, CODE, createEntryToken, findRoom, isReceptionMode, limiterKey, parseRooms } from "@/lib/reception";
 
 const Body = z.object({ codigo: z.string().trim().regex(CODE) });
 const limiter = new AttemptLimiter();
@@ -13,7 +14,7 @@ const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
 export async function POST(req: Request) {
   if (!isReceptionMode()) return jsonError(404, "no_encontrado");
   const started = Date.now();
-  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "sin-ip";
+  const ip = limiterKey(clientIp(req.headers));
   // Misma demora en todas las respuestas: frena a quien prueba códigos y no delata cuál acertó.
   const answer = async (res: NextResponse) => {
     await wait(Math.max(0, DELAY_MS - (Date.now() - started)));
