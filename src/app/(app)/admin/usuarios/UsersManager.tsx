@@ -108,7 +108,7 @@ export function UsersManager({ profiles, lastLogin, selfId }: { profiles: Profil
       {error && <p role="alert" className="text-sm text-red-700">{error}</p>}
 
       {secret && (
-        <div className="card border-gold bg-gold/10 p-4" data-testid="temp-password">
+        <div className="card border-gold-line bg-gold-line/10 p-4" data-testid="temp-password">
           <p className="text-sm text-navy">Contraseña temporal de <strong>{secret.email}</strong> (se muestra una sola vez):</p>
           <div className="mt-2 flex items-center gap-3">
             <code className="select-all rounded-sm bg-white px-3 py-2 font-mono text-lg tracking-wider text-navy">{secret.password}</code>

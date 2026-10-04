@@ -1,43 +1,49 @@
 import { Suspense } from "react";
 import Link from "next/link";
-import { BrandMark } from "@/components/Brand";
+import { BonnyMark } from "@/components/Brand";
+import { brand } from "@/lib/brand";
+import { brandTheme } from "@/lib/brand-theme";
 import { LoginFlow } from "./LoginFlow";
 
+// Pantalla de ingreso con la identidad de BONNY; el cuarto se identifica con el logo y el nombre del cliente.
 export default function LoginPage() {
+  const { logo } = brandTheme();
   return (
-    <main className="grid min-h-screen lg:grid-cols-[1.1fr_1fr]">
-      <section className="relative hidden overflow-hidden bg-navy p-12 text-white lg:flex lg:flex-col lg:justify-between">
-        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(255,255,255,.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.03)_1px,transparent_1px)] bg-[size:60px_60px]" />
-        <BrandMark light />
-        <div className="relative max-w-md">
-          <p className="mb-4 text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-gold">Acceso restringido</p>
-          <h1 className="font-serif text-5xl font-light leading-tight">
-            Documentación confidencial, <em className="text-gold-2">bajo registro</em>.
-          </h1>
-          <ul className="mt-8 space-y-3 text-sm text-white/70">
-            <li>— Solo usuarios invitados, con verificación en dos pasos.</li>
-            <li>— Documentos de solo lectura con marca de agua personal.</li>
-            <li>— Cada acción queda en un registro inalterable y verificable.</li>
-          </ul>
-        </div>
-        <p className="relative text-xs text-white/60">El uso de este espacio implica la aceptación del registro de su actividad (IP, ubicación aproximada, dispositivo y acciones).</p>
-      </section>
-      <section className="flex items-center justify-center p-6">
-        <div className="w-full max-w-sm">
-          <div className="mb-8 lg:hidden"><BrandMark /></div>
+    <main className="bonny flex min-h-screen flex-col">
+      <header className="flex items-center justify-between border-b border-black/5 bg-white/70 px-5 py-3 backdrop-blur-xl sm:px-10">
+        <BonnyMark />
+        <span className="hidden text-[0.8rem] text-bonny-sub sm:block">Cuartos de datos privados</span>
+      </header>
+
+      <div className="flex flex-1 flex-col items-center justify-center px-4 py-10">
+        <div className="w-full max-w-[440px] rounded-3xl bg-white p-7 shadow-[0_1px_2px_rgba(0,0,0,.04),0_12px_40px_-12px_rgba(0,0,0,.14)] sm:p-9">
+          <div className="mb-7 border-b border-black/5 pb-6 text-center">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            {logo && <img src={logo} alt="" className="mx-auto mb-3 h-14 w-auto" />}
+            <p className="eyebrow">{brand.roomName}</p>
+            <h1 className="mt-1 font-display text-[2rem] leading-tight italic">{brand.orgName}</h1>
+          </div>
           <Suspense>
             <LoginFlow />
           </Suspense>
-          <p className="mt-10 border-t border-navy/10 pt-4 text-xs leading-relaxed text-muted">
+        </div>
+
+        <div className="mt-6 max-w-[440px] space-y-2 text-center text-xs leading-relaxed text-bonny-sub">
+          <p>El uso de este espacio implica la aceptación del registro de su actividad (IP, ubicación aproximada, dispositivo y acciones).</p>
+          <p>
             Este sitio usa solo cookies esenciales para mantener su sesión segura; no usa cookies de publicidad ni de analítica.{" "}
             <Link href="/privacidad#cookies" className="underline">Más información</Link>
-            <span className="mt-2 block">
-              <Link href="/privacidad" className="underline">Política de tratamiento de datos</Link>{" · "}
-              <Link href="/terminos" className="underline">Términos de uso</Link>
-            </span>
+          </p>
+          <p>
+            <Link href="/privacidad" className="underline">Política de tratamiento de datos</Link>{" · "}
+            <Link href="/terminos" className="underline">Términos de uso</Link>
           </p>
         </div>
-      </section>
+      </div>
+
+      <footer className="pb-6 text-center text-xs text-bonny-sub">
+        <span className="font-medium text-bonny-ink">Verificación en dos pasos</span> · Registro inalterable
+      </footer>
     </main>
   );
 }

@@ -35,7 +35,7 @@ export default async function AdminHome() {
       </div>
       <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
         {stats.map((s) => (
-          <Link key={s.label} href={s.href} className="card p-4 hover:border-gold">
+          <Link key={s.label} href={s.href} className="card p-4 hover:border-gold-line">
             <div className="text-[0.65rem] font-semibold uppercase tracking-wider text-muted">{s.label}</div>
             <div className={`mt-2 font-serif text-4xl ${s.alert ? "text-red-700" : "text-navy"}`}>{s.value}</div>
           </Link>

@@ -257,7 +257,7 @@ export function Viewer({ documentId, kind, shield = true }: { documentId: string
       {sheets && (
         <div className="flex gap-1 overflow-x-auto border-b border-navy/10 bg-white px-2">
           {sheets.map((s, i) => (
-            <button key={s.name} onClick={() => setPage(i + 1)} className={`whitespace-nowrap px-3 py-2 text-xs ${page === i + 1 ? "border-b-2 border-gold font-semibold text-navy" : "text-muted"}`}>{s.name}</button>
+            <button key={s.name} onClick={() => setPage(i + 1)} className={`whitespace-nowrap px-3 py-2 text-xs ${page === i + 1 ? "border-b-2 border-gold-line font-semibold text-navy" : "text-muted"}`}>{s.name}</button>
           ))}
         </div>
       )}

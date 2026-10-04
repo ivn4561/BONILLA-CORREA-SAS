@@ -57,5 +57,6 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|pdfjs/|favicon.ico|robots.txt).*)"],
+  // marcas/: logos de los clientes, visibles también en la pantalla de ingreso.
+  matcher: ["/((?!_next/static|_next/image|pdfjs/|marcas/|favicon.ico|robots.txt).*)"],
 };

@@ -7,29 +7,55 @@
   --color-gold-2: #e2c97e;
   /* Dorado oscuro para texto sobre fondos claros (contraste ≥ 4,5:1, WCAG AA) */
   --color-gold-ink: #7d6019;
+  /* Acento para bordes y foco sobre fondos claros (se separa del dorado para la marca de cada cliente) */
+  --color-gold-line: #c9a84c;
   --color-cream: #f8f6f1;
   --color-cream-2: #f0ece3;
   --color-ink: #1a2744;
   --color-muted: #5b6170;
   --font-serif: "Cormorant Garamond", Georgia, serif;
   --font-sans: "Montserrat", system-ui, sans-serif;
+  /* Identidad BONNY (pantalla de ingreso) */
+  --color-bonny-bg: #f5f5f7;
+  --color-bonny-ink: #1d1d1f;
+  --color-bonny-sub: #6e6e73;
+  --font-bonny: "DM Sans", system-ui, sans-serif;
+  --font-display: "Instrument Serif", Georgia, serif;
 }
 
 html, body { background: var(--color-cream); color: var(--color-ink); }
 body { font-family: var(--font-sans); -webkit-font-smoothing: antialiased; }
 
 @utility card { @apply rounded-md border border-navy/10 bg-white shadow-sm; }
-@utility btn { @apply inline-flex items-center justify-center gap-2 rounded-sm px-4 py-2 text-xs font-semibold uppercase tracking-wider transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold disabled:cursor-not-allowed disabled:opacity-50; }
+@utility btn { @apply inline-flex items-center justify-center gap-2 rounded-sm px-4 py-2 text-xs font-semibold uppercase tracking-wider transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-line disabled:cursor-not-allowed disabled:opacity-50; }
 @utility btn-primary { @apply btn bg-navy text-white hover:bg-navy-2; }
 @utility btn-gold { @apply btn bg-gold text-navy hover:bg-gold-2; }
 @utility btn-ghost { @apply btn border border-navy/20 text-navy hover:bg-navy/5; }
 @utility btn-danger { @apply btn border border-red-700/30 text-red-800 hover:bg-red-50; }
-@utility input { @apply w-full rounded-sm border border-navy/20 bg-white px-3 py-2 text-sm outline-none focus:border-gold focus:ring-2 focus:ring-gold/30; }
+@utility input { @apply w-full rounded-sm border border-navy/20 bg-white px-3 py-2 text-sm outline-none focus:border-gold-line focus:ring-2 focus:ring-gold-line/30; }
 @utility label { @apply mb-1 block text-[0.65rem] font-semibold uppercase tracking-[0.15em] text-muted; }
 @utility eyebrow { @apply text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-gold-ink; }
 .table-audit th { @apply whitespace-nowrap border-b border-navy/10 bg-cream-2 px-3 py-2 text-left text-[0.65rem] font-semibold uppercase tracking-wider text-muted; }
 .table-audit td { @apply border-b border-navy/5 px-3 py-2 align-top text-xs; }
 @utility badge { @apply inline-block rounded-full px-2 py-0.5 text-[0.65rem] font-semibold; }
+
+/* ---------- Pantalla de ingreso con la identidad BONNY ----------
+   Redefine los colores y letras del tema solo dentro de .bonny: el formulario de ingreso conserva su lógica
+   y sus clases, y adopta el estilo neutro de BONNY sin importar la marca del cliente. */
+.bonny {
+  --color-navy: #1d1d1f; --color-navy-2: #3a3a3c; --color-ink: #1d1d1f;
+  --color-gold: #1d1d1f; --color-gold-2: #3a3a3c; --color-gold-ink: #6e6e73; --color-gold-line: #1d1d1f;
+  --color-muted: #6e6e73; --color-cream: #f5f5f7; --color-cream-2: #ececf0;
+  --font-sans: "DM Sans", system-ui, sans-serif; --font-serif: "Instrument Serif", Georgia, serif;
+  font-family: var(--font-sans);
+  background: var(--color-bonny-bg);
+  color: var(--color-bonny-ink);
+}
+.bonny .btn-primary { border-radius: 9999px; padding: .8rem 1.25rem; font-size: .95rem; font-weight: 500; text-transform: none; letter-spacing: 0; }
+/* 16 px evita que Safari del iPad amplíe la pantalla al tocar el campo */
+.bonny .input { border-radius: .75rem; padding: .7rem 1rem; font-size: 1rem; }
+.bonny .label { font-size: .8rem; font-weight: 500; text-transform: none; letter-spacing: 0; color: var(--color-bonny-sub); }
+.bonny .eyebrow { letter-spacing: .14em; }
 
 /* ---------- Visor protegido ---------- */
 .protected, .protected * { -webkit-user-select: none !important; user-select: none !important; -webkit-touch-callout: none !important; }
