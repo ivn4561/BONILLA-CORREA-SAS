@@ -32,6 +32,7 @@ describe("marca del cliente", () => {
       BRAND_LOGO_ON_DARK: "/marcas/../api/files/1.svg",
     });
     expect(t).toEqual({ style: {}, logo: null, logoOnDark: null });
+    expect(brandTheme({ BRAND_FONT: "constructor" }).style).toEqual({});
     expect(brandTheme({ BRAND_LOGO: "/pdfjs/logo.svg" }).logo).toBeNull();
     expect(brandTheme({ BRAND_LOGO: "/marcas/logo.js" }).logo).toBeNull();
   });

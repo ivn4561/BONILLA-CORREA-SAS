@@ -54,10 +54,10 @@ export function brandTheme(e: Env = process.env): BrandTheme {
     style["--color-gold-line"] = accentOnLight;
   }
 
-  const font = FONTS[e.BRAND_FONT?.trim().toLowerCase() ?? ""];
-  if (font) {
-    style["--font-sans"] = font;
-    style["--font-serif"] = font;
+  const fontKey = e.BRAND_FONT?.trim().toLowerCase() ?? "";
+  if (Object.hasOwn(FONTS, fontKey)) {
+    style["--font-sans"] = FONTS[fontKey];
+    style["--font-serif"] = FONTS[fontKey];
   }
 
   return { style, logo: logoPath(e.BRAND_LOGO), logoOnDark: logoPath(e.BRAND_LOGO_ON_DARK) };

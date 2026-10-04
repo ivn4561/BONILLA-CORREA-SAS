@@ -132,6 +132,9 @@ flujo completo de administrador y auditor y comprueban el registro. **No subir d
 5. Cuando Iván lo pida: cuenta u organización de GitHub con la identidad visual de BONNY.
 
 ### Riesgos conocidos y pendientes
+- Falta verificar en Safari de iPad el ingreso con identidad BONNY (desenfoque, `color-mix` requiere Safari 16.2+, cursivas).
+- El repositorio es **público**: este archivo y los logos de `public/marcas/` revelan quiénes son clientes y se sirven
+  sin sesión en todas las instalaciones. Recomendado: pasar el repositorio a privado.
 - Faltan por verificar en Safari de iPad: el método alternativo del botón Copiar y el ancho del campo de fecha (PR #8).
 - La mejora de «ocultar al instante al pulsar ⌘» se descartó: no se puede verificar desde el entorno de pruebas.
 - Supabase gratuito no hace copias de seguridad: exportar el registro con regularidad.
