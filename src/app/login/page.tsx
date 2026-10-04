@@ -3,16 +3,22 @@ import Link from "next/link";
 import { BonnyMark } from "@/components/Brand";
 import { brand } from "@/lib/brand";
 import { brandTheme } from "@/lib/brand-theme";
+import { receptionGate } from "@/lib/reception";
 import { LoginFlow } from "./LoginFlow";
 
 // Pantalla de ingreso con la identidad de BONNY; el cuarto se identifica con el logo y el nombre del cliente.
 export default function LoginPage() {
   const { logo } = brandTheme();
+  const reception = receptionGate()?.url;
   return (
     <div className="bonny flex min-h-screen flex-col">
       <header className="flex items-center justify-between border-b border-black/5 bg-white/70 px-5 py-3 backdrop-blur-xl sm:px-10">
         <BonnyMark />
-        <span className="hidden text-[0.8rem] text-bonny-sub sm:block">Cuartos de datos privados</span>
+        {reception ? (
+          <a href={reception} className="text-[0.8rem] text-bonny-sub hover:text-bonny-ink">‹ Cambiar de cuarto</a>
+        ) : (
+          <span className="hidden text-[0.8rem] text-bonny-sub sm:block">Cuartos de datos privados</span>
+        )}
       </header>
 
       <main className="flex flex-1 flex-col items-center justify-center px-4 py-10">
