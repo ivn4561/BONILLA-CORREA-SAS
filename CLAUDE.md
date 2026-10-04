@@ -68,6 +68,8 @@ un registro inalterable. Sirve para cualquier tipo de auditoría (externa, *due 
 | `src/lib/export.ts` | CSV (con protección contra inyección de fórmulas) y PDF (pdf-lib). El SHA-256 de cada exportación se registra. |
 | `src/app/privacidad`, `src/app/terminos`, `src/lib/legal.ts` | Textos legales (Ley 1581/2012, Decreto 1377/2013). La versión está en `LEGAL_VERSION`: si se sube, todos aceptan de nuevo. |
 | `src/app/api/cron/keepalive` + `vercel.json` | Tarea diaria que evita que Supabase gratuito se pause. |
+| `src/app/login/page.tsx`, `src/components/Brand.tsx` | Ingreso con la **identidad BONNY** (zorro en línea, «Llave y control», DM Sans + Instrument Serif, estilo neutro tipo Apple). La clase `.bonny` de `globals.css` re-tematiza el formulario sin tocar su lógica. |
+| `src/lib/brand-theme.ts`, `public/marcas/` | **Marca del cliente** dentro del cuarto: variables `BRAND_*` (colores #rrggbb, `BRAND_FONT=poppins`, logos en `/marcas/`). Vacías = aspecto de siempre. |
 
 ### Roles
 Solo dos: **admin** (todo) y **auditor** (solo ve «Documentos»; las rutas de administración lo redirigen y las APIs
@@ -78,13 +80,15 @@ devuelven 403). No existe un rol de «solo ver el registro».
 **sin** `/rest/v1`), `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `SESSION_SECRET` (32 caracteres o más),
 `IDLE_TIMEOUT_MINUTES` (**5** en producción), `REQUIRE_MFA=true`, `DOCS_SOURCE=drive`, `DRIVE_ROOT_FOLDER_ID`,
 `GOOGLE_SERVICE_ACCOUNT_JSON` (el JSON pegado tal cual: debe **empezar con `{`** y terminar con `}`),
-`GEO_FALLBACK`, `SCREEN_SHIELD`, `LEGAL_*` (datos del responsable del tratamiento), `CRON_SECRET` (opcional).
+`GEO_FALLBACK`, `SCREEN_SHIELD`, `LEGAL_*` (datos del responsable del tratamiento), `CRON_SECRET` (opcional),
+`BRAND_COLOR_PRIMARY`, `BRAND_COLOR_ACCENT`, `BRAND_COLOR_ACCENT_ON_LIGHT`, `BRAND_FONT`, `BRAND_LOGO`, `BRAND_LOGO_ON_DARK`
+(marca del cliente, opcionales). Cambiar variables en Vercel exige volver a desplegar (Redeploy).
 Las variables vacías usan su valor por defecto (`positiveNumber` en `env-utils.ts`).
 
 ## 4. Cómo probar (obligatorio antes de cada PR)
 
 ```bash
-npm run lint && npm run typecheck && npm test        # 12 pruebas unitarias (Vitest)
+npm run lint && npm run typecheck && npm test        # 15 pruebas unitarias (Vitest)
 # Docker (si falla, borrar /var/run/docker.pid de una sesión anterior) y Supabase local:
 dockerd &  ;  npx supabase start  ;  npx supabase db reset
 npm run create-admin -- admin@demo.co "Admin Demo"   # imprime la contraseña temporal
@@ -103,22 +107,34 @@ flujo completo de administrador y auditor y comprueban el registro. **No subir d
   Vercel → Deployments → Promote/Instant Rollback.
 - Supabase: proyecto `cuarto-de-datos` (plan gratuito). Drive: carpeta «Cuarto de datos» en la cuenta personal de Iván.
 - PR fusionados: #4 app inicial · #5 variables vacías · #6 cookies httpOnly y keepalive · #7 páginas legales,
-  consentimiento y contraste · #8 marca de agua en fondos oscuros, botón Copiar y campo de fecha en Safari.
+  consentimiento y contraste · #8 marca de agua en fondos oscuros, botón Copiar y campo de fecha en Safari ·
+  #9 memoria del proyecto y agente revisor. En revisión: PR de identidad BONNY en el ingreso y marca por cliente.
 - **Primer cliente que pagó: Harbor Shipping.** Manual de marca en Drive: «BONNY páginas web / CUARTO DE DATOS /
   Cliente - Harbor Shipping». Marca: tipografía **Poppins**; morado `#7036ff`, azul `#1b1589`, azul noche `#1e1e59`,
   lima `#b6ff00`. El manual **prohíbe usar su logo como marca de agua**: la nuestra es solo texto.
-- Dominio elegido: **bonnyanalytics.com** (comprado en Vercel). Plan:
+- **Identidad BONNY** (decidida con Iván): estilo neutro y sobrio tipo Apple, sin dorados ni efectos; zorro en línea negra;
+  lema **«Llave y control»**; títulos en Instrument Serif (cursiva) y texto en DM Sans (no copiar San Francisco).
+  Su diseño anterior «Bonny Web – Dirección A» está en su Drive. Logos de Harbor extraídos del manual (vector) en `public/marcas/`.
+- **Edificio de cuartos** (decidido): recepción BONNY donde se escribe un **código de 6 dígitos** del cuarto (4 se adivina
+  fácil) → login del cuarto (correo + contraseña + 2FA) → interior con la marca del cliente. Cada cliente sigue en su
+  instalación separada. Mostrar cuartos por correo se descartó (revela qué empresas audita alguien).
+- Dominio elegido: **bonnyanalytics.com** (**aún no comprado**; se compra al final). Plan:
   `bonnyanalytics.com` = web de BONNY, `harbor.bonnyanalytics.com` = cuarto de Harbor, `demo.bonnyanalytics.com` = demo.
 
 ### Siguientes pasos acordados
-1. PR de **marca por cliente**: colores, tipografía y logo configurables por variables de entorno (hoy solo el nombre lo es).
+1. **Recepción BONNY** con el código de 6 dígitos y límite de intentos (los códigos equivocados no tienen cuarto donde
+   registrarse: no prometer «cada intento queda registrado»).
 2. **Instalación separada para Harbor**: Supabase nuevo (recomendado Pro), proyecto Vercel nuevo del mismo
    repositorio, carpeta de Drive nueva (ideal: cuenta de Google exclusiva), subdominio. La instalación actual pasa a
    ser la **demo**. **Nunca borrar el registro** de una instalación: es inalterable por diseño.
 3. Pasar Vercel a **Pro** (uso comercial). Crear un segundo administrador. Completar las variables `LEGAL_*` del cliente.
 4. Más adelante: la web principal de BONNY en `bonnyanalytics.com`.
+5. Cuando Iván lo pida: cuenta u organización de GitHub con la identidad visual de BONNY.
 
 ### Riesgos conocidos y pendientes
+- Falta verificar en Safari de iPad el ingreso con identidad BONNY (desenfoque, `color-mix` requiere Safari 16.2+, cursivas).
+- El repositorio es **público**: este archivo y los logos de `public/marcas/` revelan quiénes son clientes y se sirven
+  sin sesión en todas las instalaciones. Recomendado: pasar el repositorio a privado.
 - Faltan por verificar en Safari de iPad: el método alternativo del botón Copiar y el ancho del campo de fecha (PR #8).
 - La mejora de «ocultar al instante al pulsar ⌘» se descartó: no se puede verificar desde el entorno de pruebas.
 - Supabase gratuito no hace copias de seguridad: exportar el registro con regularidad.
