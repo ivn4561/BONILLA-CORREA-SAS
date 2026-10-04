@@ -69,6 +69,7 @@ un registro inalterable. Sirve para cualquier tipo de auditoría (externa, *due 
 | `src/app/privacidad`, `src/app/terminos`, `src/lib/legal.ts` | Textos legales (Ley 1581/2012, Decreto 1377/2013). La versión está en `LEGAL_VERSION`: si se sube, todos aceptan de nuevo. |
 | `src/app/api/cron/keepalive` + `vercel.json` | Tarea diaria que evita que Supabase gratuito se pause. |
 | `src/app/login/page.tsx`, `src/components/Brand.tsx` | Ingreso con la **identidad BONNY** (zorro en línea, «Llave y control», DM Sans + Instrument Serif, estilo neutro tipo Apple). La clase `.bonny` de `globals.css` re-tematiza el formulario sin tocar su lógica. |
+| `src/lib/reception.ts`, `src/app/page.tsx` (+ `Reception.tsx`, `RoomCodeForm.tsx`), `src/app/api/recepcion`, `src/app/entrar` | **Recepción BONNY**: con `APP_MODE=recepcion` la misma compilación es la recepción (sin base de datos). Código de 6 dígitos → pase firmado (2 min) → `/entrar` del cuarto lo valida, registra `ingreso_recepcion` y deja la cookie `dr_room` (12 h). Con `RECEPTION_SECRET` + `RECEPTION_URL`, el proxy del cuarto exige esa cookie para `/login`. Límite: 5 fallos por IP (IPv6 por bloque /64) cada 15 min, en memoria (freno, no garantía); sin tope global para no dejar a todos sin entrar. Si `RECEPTION_*` está mal puesta, el ingreso del cuarto queda **cerrado** (503) en vez de abrirse sin aviso. |
 | `src/lib/brand-theme.ts`, `public/marcas/` | **Marca del cliente** dentro del cuarto: variables `BRAND_*` (colores #rrggbb, `BRAND_FONT=poppins`, logos en `/marcas/`). Vacías = aspecto de siempre. |
 
 ### Roles
@@ -88,7 +89,7 @@ Las variables vacías usan su valor por defecto (`positiveNumber` en `env-utils.
 ## 4. Cómo probar (obligatorio antes de cada PR)
 
 ```bash
-npm run lint && npm run typecheck && npm test        # 15 pruebas unitarias (Vitest)
+npm run lint && npm run typecheck && npm test        # 21 pruebas unitarias (Vitest)
 # Docker (si falla, borrar /var/run/docker.pid de una sesión anterior) y Supabase local:
 dockerd &  ;  npx supabase start  ;  npx supabase db reset
 npm run create-admin -- admin@demo.co "Admin Demo"   # imprime la contraseña temporal
@@ -96,7 +97,10 @@ npm run build && npm start &
 CHROMIUM_PATH=/opt/pw-browsers/chromium ADMIN_TEMP_PASSWORD=<la impresa> npx playwright test tests/flujo-completo.spec.ts
 ```
 `.env.local` local: claves de Supabase local, `DOCS_SOURCE=local`. Las 6 pruebas de punta a punta recorren el
-flujo completo de administrador y auditor y comprueban el registro. **No subir documentos personales a
+flujo completo de administrador y auditor y comprueban el registro. `tests/recepcion.spec.ts` (4 pruebas, `RECEPTION_TEST=1`)
+necesita dos servidores de la misma compilación: el cuarto en 3000 (con `RECEPTION_SECRET` y `RECEPTION_URL`, también al
+compilar) y la recepción en 3001 (`APP_MODE=recepcion`, `RECEPTION_ROOMS`). No usar `pkill -f "next start"` desde una
+orden que contenga ese texto: mata la propia terminal. **No subir documentos personales a
 `demo-docs/`** ni usar datos reales en las pruebas.
 
 ## 5. Estado actual (actualizar al terminar cada tarea)
@@ -108,7 +112,8 @@ flujo completo de administrador y auditor y comprueban el registro. **No subir d
 - Supabase: proyecto `cuarto-de-datos` (plan gratuito). Drive: carpeta «Cuarto de datos» en la cuenta personal de Iván.
 - PR fusionados: #4 app inicial · #5 variables vacías · #6 cookies httpOnly y keepalive · #7 páginas legales,
   consentimiento y contraste · #8 marca de agua en fondos oscuros, botón Copiar y campo de fecha en Safari ·
-  #9 memoria del proyecto y agente revisor. En revisión: PR de identidad BONNY en el ingreso y marca por cliente.
+  #9 memoria del proyecto y agente revisor · #10 identidad BONNY en el ingreso y marca por cliente.
+  En revisión: PR de la recepción BONNY con código de 6 dígitos (y nombre de empresa por defecto neutro).
 - **Primer cliente que pagó: Harbor Shipping.** Manual de marca en Drive: «BONNY páginas web / CUARTO DE DATOS /
   Cliente - Harbor Shipping». Marca: tipografía **Poppins**; morado `#7036ff`, azul `#1b1589`, azul noche `#1e1e59`,
   lima `#b6ff00`. El manual **prohíbe usar su logo como marca de agua**: la nuestra es solo texto.
@@ -116,14 +121,16 @@ flujo completo de administrador y auditor y comprueban el registro. **No subir d
   lema **«Llave y control»**; títulos en Instrument Serif (cursiva) y texto en DM Sans (no copiar San Francisco).
   Su diseño anterior «Bonny Web – Dirección A» está en su Drive. Logos de Harbor extraídos del manual (vector) en `public/marcas/`.
 - **Edificio de cuartos** (decidido): recepción BONNY donde se escribe un **código de 6 dígitos** del cuarto (4 se adivina
-  fácil) → login del cuarto (correo + contraseña + 2FA) → interior con la marca del cliente. Cada cliente sigue en su
+  fácil) → login del cuarto con la empresa dueña arriba (correo + contraseña + 2FA) → interior con la marca del cliente.
+  «Bonilla · Correa S.A.S.» fue solo para pruebas: **no debe aparecer** (el nombre sale de `NEXT_PUBLIC_ORG_NAME`). Cada cliente sigue en su
   instalación separada. Mostrar cuartos por correo se descartó (revela qué empresas audita alguien).
 - Dominio elegido: **bonnyanalytics.com** (**aún no comprado**; se compra al final). Plan:
   `bonnyanalytics.com` = web de BONNY, `harbor.bonnyanalytics.com` = cuarto de Harbor, `demo.bonnyanalytics.com` = demo.
 
 ### Siguientes pasos acordados
-1. **Recepción BONNY** con el código de 6 dígitos y límite de intentos (los códigos equivocados no tienen cuarto donde
-   registrarse: no prometer «cada intento queda registrado»).
+1. Poner en marcha la recepción: proyecto Vercel nuevo del mismo repositorio con `APP_MODE=recepcion`; en cada cuarto,
+   `RECEPTION_SECRET` y `RECEPTION_URL`. Los códigos equivocados solo quedan en los registros de Vercel (duran poco):
+   no prometer «cada intento queda registrado». Considerar un límite de intentos persistente (p. ej. firewall de Vercel).
 2. **Instalación separada para Harbor**: Supabase nuevo (recomendado Pro), proyecto Vercel nuevo del mismo
    repositorio, carpeta de Drive nueva (ideal: cuenta de Google exclusiva), subdominio. La instalación actual pasa a
    ser la **demo**. **Nunca borrar el registro** de una instalación: es inalterable por diseño.
@@ -132,6 +139,8 @@ flujo completo de administrador y auditor y comprueban el registro. **No subir d
 5. Cuando Iván lo pida: cuenta u organización de GitHub con la identidad visual de BONNY.
 
 ### Riesgos conocidos y pendientes
+- Recepción: el pase de entrada (`/entrar?t=…`) se puede reutilizar durante 2 minutos (solo abre el formulario; siguen
+  contraseña y 2FA). El límite de intentos vive en la memoria del servidor: es un freno, no una garantía.
 - Falta verificar en Safari de iPad el ingreso con identidad BONNY (desenfoque, `color-mix` requiere Safari 16.2+, cursivas).
 - El repositorio es **público**: este archivo y los logos de `public/marcas/` revelan quiénes son clientes y se sirven
   sin sesión en todas las instalaciones. Recomendado: pasar el repositorio a privado.

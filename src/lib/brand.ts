@@ -1,6 +1,7 @@
 export const brand = {
-  orgName: process.env.NEXT_PUBLIC_ORG_NAME ?? "Bonilla · Correa S.A.S.",
-  roomName: process.env.NEXT_PUBLIC_ROOM_NAME ?? "Cuarto de datos",
+  // Empresa dueña del cuarto. Se configura por instalación; vacío = nombre genérico de demostración.
+  orgName: process.env.NEXT_PUBLIC_ORG_NAME?.trim() || "Empresa de demostración",
+  roomName: process.env.NEXT_PUBLIC_ROOM_NAME?.trim() || "Cuarto de datos",
 };
 
 export const APP_TIMEZONE = process.env.APP_TIMEZONE ?? "America/Bogota";

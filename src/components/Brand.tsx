@@ -40,14 +40,14 @@ export function BonnyFox({ className = "h-6 w-6" }: { className?: string }) {
   );
 }
 
-/** Marca de BONNY con su lema, para la pantalla de ingreso. */
-export function BonnyMark() {
+/** Marca de BONNY con su lema, para la recepción y la pantalla de ingreso. */
+export function BonnyMark({ tagline = true }: { tagline?: boolean }) {
   return (
     <div className="flex items-center gap-2.5 text-bonny-ink">
       <BonnyFox className="h-7 w-7" />
       <div className="leading-none">
         <div className="font-bonny text-sm font-semibold tracking-[0.22em]">BONNY</div>
-        <div className="mt-1 font-display text-[0.95rem] italic text-bonny-sub">Llave y control</div>
+        {tagline && <div className="mt-1 font-display text-[0.95rem] italic text-bonny-sub">Llave y control</div>}
       </div>
     </div>
   );

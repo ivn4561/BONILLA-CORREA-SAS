@@ -7,6 +7,7 @@ export const ACTION_LABELS: Record<string, string> = {
   mfa_fallido: "Código 2FA incorrecto",
   mfa_activado: "2FA activado",
   acceso_denegado: "Acceso denegado",
+  ingreso_recepcion: "Llegada por la recepción (código correcto)",
   cierre_sesion: "Cierre de sesión",
   cambio_contrasena: "Cambio de contraseña",
   consentimiento_aceptado: "Aceptación de términos y tratamiento de datos",
